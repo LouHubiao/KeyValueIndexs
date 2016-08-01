@@ -64,52 +64,52 @@ namespace IndexTest
         };
 
 
-        ArtTree tree;
+        public ArtTree tree;
 
         public ART()
         {
+            tree = new ArtTree();
             tree.root = AllocNode(NodeType.NODE4);
             tree.size = 0;
         }
 
         public IntPtr ArtSearch(ArtTree t, char[] key)
         {
-            object node = t.root;
+            ArtNode node = t.root;
             int offset = 0;  //offset
-            while (node != null)
+            int findOffset;
+            while (offset != key.Length)
             {
-                //if is leaf, return value id key is equal 
-                if (node is ArtLeaf)
-                {
-                    ArtLeaf leaf = node as ArtLeaf;
-                    return leaf.value;
-                }
-
-                ArtNode artNode = (ArtNode)node;
-
                 //if has prefix, must match
-                if (artNode.prefix_len > 0)
+                if (node.prefix_len > 0)
                 {
-                    if (MatchPrefix(artNode, key, offset) == false)
+                    if (MatchPrefix(node, key, offset) == false)
                         return IntPtr.Zero;
-                    offset += artNode.prefix_len;
+                    offset += node.prefix_len;
                 }
 
                 // Recursively search
-                node = FindNextChild(artNode, key[offset]);
-                if (node == null)
+                node = FindNextChild(node, key[offset], out findOffset) as ArtNode;
+                if (findOffset == -1)
                 {
                     return IntPtr.Zero;
                 }
                 offset++;
             }
+
+            if (node.children[0] != null)
+            {
+                ArtLeaf leaf = node.children[0] as ArtLeaf;
+                return leaf.value;
+            }
+
             return IntPtr.Zero;
         }
 
         //insert a key-value pair
         public void Insert(ArtTree t, char[] key, IntPtr value)
         {
-            Recursive_Insert(t.root, key, 0, value, t.root.children, 0);
+            Recursive_Insert(t.root, key, 0, value, null, 0);
         }
 
         void Recursive_Insert(ArtNode node, char[] key, int offset, IntPtr value, object[] preChildren, int preIndex)
@@ -117,16 +117,59 @@ namespace IndexTest
             //try move prefix first
             if (node.prefix_len > 0)
             {
-                /*
                 //move offset
                 int matchLength = PrefixMatch(node, key, offset);
-                if(offset+matchLength>)
-                
-                
-            */
-                //change offset
-                //if(not to end)
-                //rebuild node
+                offset += matchLength;
+                if (matchLength == node.prefix_len)
+                {
+                    if (offset < key.Length)
+                    {
+                        //add node4 for prefix
+                        ArtNode4 artnode4 = AllocNode(NodeType.NODE4) as ArtNode4;
+                        AddChild(node, key[offset], artnode4, preChildren, preIndex);
+                        artnode4.prefix_len = (byte)(key.Length - offset - 1);
+                        artnode4.prefix = new char[artnode4.prefix_len];
+                        Array.Copy(key, offset + 1, artnode4.prefix, 0, artnode4.prefix_len);
+                        node = artnode4;
+                    }
+                }
+                else
+                {
+                    //need splite prefix, ndoe4 with two children
+                    ArtNode4 nodeUpdate = AllocNode(NodeType.NODE4) as ArtNode4;
+                    nodeUpdate.prefix_len = (byte)matchLength;
+                    nodeUpdate.prefix = new char[nodeUpdate.prefix_len];
+                    Array.Copy(node.prefix, nodeUpdate.prefix, nodeUpdate.prefix_len);
+                    preChildren[preIndex] = nodeUpdate;
+                    //add orig node into nodeUpdate
+                    AddChild(nodeUpdate, node.prefix[matchLength], node, preChildren, preIndex);
+                    //edit ori node
+                    for (int i = matchLength + 1; i < node.prefix_len; i++)
+                    {
+                        node.prefix[i - matchLength - 1] = node.prefix[i];
+                    }
+                    node.prefix_len = (byte)(node.prefix_len - matchLength - 1);
+
+                    if (offset == key.Length)
+                    {
+                        //wait to add leaf
+                        node = nodeUpdate;
+                    }
+                    else
+                    {
+                        //new node
+                        ArtNode4 artnode4 = AllocNode(NodeType.NODE4) as ArtNode4;
+                        artnode4.prefix_len = (byte)(key.Length - offset - 1);
+                        artnode4.prefix = new char[artnode4.prefix_len];
+                        Array.Copy(key, offset + 1, artnode4.prefix, 0, artnode4.prefix_len);
+                        //add new node
+                        AddChild(nodeUpdate, key[offset], artnode4, preChildren, preIndex);
+                        //wait to add leaf
+                        node = artnode4;
+                    }
+                }
+                Add_UpdateLeaf(node, value);
+                return;
             }
 
             //add(update) leaf
@@ -146,10 +189,9 @@ namespace IndexTest
                 AddChild(node, key[offset], newNode, preChildren, preIndex);
 
                 //add prefix
-                int prefixLen = key.Length - 1 - offset;
-                newNode.prefix = new char[prefixLen];
-                Array.Copy(key, offset + 1, newNode.prefix, 0, prefixLen);
-                newNode.prefix_len = (byte)prefixLen;
+                newNode.prefix_len = (byte)(key.Length - 1 - offset);
+                newNode.prefix = new char[newNode.prefix_len];
+                Array.Copy(key, offset + 1, newNode.prefix, 0, newNode.prefix_len);
 
                 //add leaf
                 ArtLeaf newLeaf = new ArtLeaf(value);
@@ -201,7 +243,7 @@ namespace IndexTest
             if (node.num_children < 4)
             {
                 int index = node.num_children;
-                while (node.keys[index - 1] > keyItem)
+                while (index > 0 && node.keys[index - 1] > keyItem)
                 {
                     node.keys[index] = node.keys[index - 1];
                     index--;
@@ -215,9 +257,12 @@ namespace IndexTest
                 //replace artNode4 by artNode16
                 ArtNode16 artNode16 = AllocNode(NodeType.NODE16) as ArtNode16;
                 CopyHeader(node, artNode16);
-                preChildren[preIndex] = artNode16;
+                if (preChildren != null)
+                    preChildren[preIndex] = artNode16;
                 //add child into artNode16
                 AddChild16(artNode16, keyItem, child, preChildren, preIndex);
+                if (preChildren == null)
+                    tree.root = node;
             }
         }
 
@@ -240,9 +285,12 @@ namespace IndexTest
                 //replace artNode16 by artNode48
                 ArtNode48 artNode48 = AllocNode(NodeType.NODE48) as ArtNode48;
                 CopyHeader(node, artNode48);
-                preChildren[preIndex] = artNode48;
+                if (preChildren != null)
+                    preChildren[preIndex] = artNode48;
                 //add child into artNode48
                 AddChild48(artNode48, keyItem, child, preChildren, preIndex);
+                if (preChildren == null)
+                    tree.root = node;
             }
         }
 
@@ -265,9 +313,12 @@ namespace IndexTest
                 //replace artNode16 by artNode48
                 ArtNode256 artNode256 = AllocNode(NodeType.NODE256) as ArtNode256;
                 CopyHeader(node, artNode256);
-                preChildren[preIndex] = artNode256;
+                if (preChildren != null)
+                    preChildren[preIndex] = artNode256;
                 //add child into artNode48
                 AddChild256(artNode256, keyItem, child, preChildren, preIndex);
+                if (preChildren == null)
+                    tree.root = node;
             }
         }
 
@@ -282,8 +333,13 @@ namespace IndexTest
         {
             target.num_children = source.num_children;
             Array.Copy(source.children, target.children, source.num_children);
-            target.prefix_len = source.prefix_len;
-            Array.Copy(source.prefix, target.prefix, source.prefix_len);
+            if (source.prefix_len > 0)
+            {
+                target.prefix_len = source.prefix_len;
+                target.prefix = new char[target.prefix_len];
+                Array.Copy(source.prefix, target.prefix, source.prefix_len);
+            }
+
         }
 
         //add if not exit, update if exit

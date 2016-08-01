@@ -10,37 +10,37 @@ namespace IndexTest
     {
         static void Main(string[] args)
         {
-            Console.WriteLine(DateTime.Now.ToString("hh:mm:ss fff"));
-            TrieIndex trieIndex = new TrieIndex();
-            for (int i = 0; i < 100000000; i += 2)
-            {
-                string key = GenerateRandomString(64);
-                IntPtr value = new IntPtr(i);
-                trieIndex.Insert(key, value);
-            }
+            //Console.WriteLine(DateTime.Now.ToString("hh:mm:ss fff"));
+            //TrieIndex trieIndex = new TrieIndex();
+            //for (int i = 0; i < 100000000; i += 2)
+            //{
+            //    string key = GenerateRandomString(64);
+            //    IntPtr value = new IntPtr(i);
+            //    trieIndex.Insert(key, value);
+            //}
 
-            string key1 = "a3b0e9e7cddbbe78270fa4182a7675ff00b92872d8df7d14265a2b1e379a9d33";
-            IntPtr value1 = new IntPtr(999999999);
-            trieIndex.Insert(key1, value1);
+            //string key1 = "a3b0e9e7cddbbe78270fa4182a7675ff00b92872d8df7d14265a2b1e379a9d33";
+            //IntPtr value1 = new IntPtr(999999999);
+            //trieIndex.Insert(key1, value1);
 
-            for (int i = 100000000; i < 200000000; i += 2)
-            {
-                string key = GenerateRandomString(64);
-                IntPtr value = new IntPtr(i);
-                trieIndex.Insert(key, value);
-            }
+            //for (int i = 100000000; i < 200000000; i += 2)
+            //{
+            //    string key = GenerateRandomString(64);
+            //    IntPtr value = new IntPtr(i);
+            //    trieIndex.Insert(key, value);
+            //}
 
-            Console.WriteLine(DateTime.Now.ToString("hh:mm:ss fff"));
-            string readKey = Console.ReadLine();
-            Console.WriteLine(DateTime.Now.ToString("hh:mm:ss fff"));
-            Console.WriteLine(trieIndex.Search(readKey));
-            Console.WriteLine(DateTime.Now.ToString("hh:mm:ss fff"));
-            Console.ReadLine();
+            //Console.WriteLine(DateTime.Now.ToString("hh:mm:ss fff"));
+            //string readKey = Console.ReadLine();
+            //Console.WriteLine(DateTime.Now.ToString("hh:mm:ss fff"));
+            //Console.WriteLine(trieIndex.Search(readKey));
+            //Console.WriteLine(DateTime.Now.ToString("hh:mm:ss fff"));
+            //Console.ReadLine();
 
             //Console.WriteLine(DateTime.Now.ToString("hh:mm:ss fff"));
             //Index<string> hashTree = new Index<string>(stringCompare, stringGetDefault);
 
-            //for (int i = 0; i < 100000000; i += 2)
+            //for (int i = 0; i < 1000000; i += 2)
             //{
             //    string key = GenerateRandomString(64);
             //    IntPtr value = new IntPtr(i);
@@ -67,6 +67,33 @@ namespace IndexTest
             //Console.WriteLine(result);
             //Console.WriteLine(DateTime.Now.ToString("hh:mm:ss fff"));
             //Console.ReadLine();
+
+            Console.WriteLine(DateTime.Now.ToString("hh:mm:ss fff"));
+            ART artTree = new ART();
+            for (int i = 0; i < 1000000; i += 2)
+            {
+                string key = GenerateRandomString(64);
+                IntPtr value = new IntPtr(i);
+                artTree.Insert(artTree.tree, key.ToArray(), value);
+            }
+
+            string key1 = "a3b0e9e7cddbbe78270fa4182a7675ff00b92872d8df7d14265a2b1e379a9d33";
+            IntPtr value1 = new IntPtr(999999999);
+            artTree.Insert(artTree.tree, key1.ToArray(), value1);
+
+            //for (int i = 100000000; i < 200000000; i += 2)
+            //{
+            //    string key = GenerateRandomString(64);
+            //    IntPtr value = new IntPtr(i);
+            //    trieIndex.Insert(key, value);
+            //}
+
+            Console.WriteLine(DateTime.Now.ToString("hh:mm:ss fff"));
+            string readKey = Console.ReadLine();
+            Console.WriteLine(DateTime.Now.ToString("hh:mm:ss fff"));
+            Console.WriteLine(artTree.ArtSearch(artTree.tree, readKey.ToArray()));
+            Console.WriteLine(DateTime.Now.ToString("hh:mm:ss fff"));
+            Console.ReadLine();
         }
         static int stringCompare(string val1, string val2)
         {
