@@ -13,7 +13,7 @@ namespace IndexTest
         public byte type;
         public byte num_children;
         public byte prefix_len;
-        public char[] prefix;   //max prefix = 10
+        public char[] prefix;
         public object[] children;
     }
 
@@ -73,7 +73,8 @@ namespace IndexTest
             tree.size = 0;
         }
 
-        public IntPtr ArtSearch(ArtTree t, char[] key)
+        //find from inode to last key item, and than search leaf
+        public IntPtr Search(ArtTree t, char[] key)
         {
             ArtNode node = t.root;
             int offset = 0;  //offset
@@ -364,8 +365,9 @@ namespace IndexTest
             target.num_children = source.num_children;
             if (source.prefix_len > 0)
             {
+                if (target.prefix_len < source.prefix_len)
+                    target.prefix = new char[target.prefix_len];
                 target.prefix_len = source.prefix_len;
-                target.prefix = new char[target.prefix_len];
                 Array.Copy(source.prefix, target.prefix, source.prefix_len);
             }
 
@@ -388,7 +390,7 @@ namespace IndexTest
             }
         }
 
-        //find leaf of node, the leaf is the child of node
+        //find leaf of node, the leaf must be the child of node
         ArtLeaf FindLeaf(ArtNode node)
         {
             if (node.num_children > 0)
@@ -478,7 +480,7 @@ namespace IndexTest
         int FindBinary(char[] array, int begin, int end, char target)
         {
             int mid = 0;
-            while (begin < end)
+            while (begin <= end)
             {
                 mid = (begin + end) / 2;
                 if (array[mid] == target)
@@ -491,7 +493,7 @@ namespace IndexTest
             return -1;
         }
 
-        //match the longest prefix
+        //match the longest prefix of the key and node's prefix
         bool MatchPrefix(ArtNode node, char[] key, int offset)
         {
             int minLen = Math.Min(node.prefix_len, key.Length);

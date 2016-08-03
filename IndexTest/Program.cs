@@ -84,20 +84,20 @@ namespace IndexTest
             Console.WriteLine(DateTime.Now.ToString("hh:mm:ss fff"));
             ART artTree = new ART();
             Random rd = new Random();
-            for (int i = 0; i < 10; i += 2)
+            for (int i = 0; i < 10000000; i += 2)
             {
                 string key = GenerateRandomString(64, rd);
                 IntPtr value = new IntPtr(i);
                 artTree.Insert(artTree.tree, key.ToArray(), value);
 
-                if (i % 1 == 0)
+                if (i % 100000 == 0)
                     tests.Add(key);
             }
 
             Console.WriteLine(DateTime.Now.ToString("hh:mm:ss fff"));
             foreach(string readKey in tests)
             {
-                Console.WriteLine(artTree.ArtSearch(artTree.tree, readKey.ToArray()));
+                Console.WriteLine(artTree.Search(artTree.tree, readKey.ToArray()));
             }
             Console.WriteLine(DateTime.Now.ToString("hh:mm:ss fff"));
             Console.ReadLine();
