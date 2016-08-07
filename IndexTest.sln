@@ -6,11 +6,6 @@ MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IndexTest", "IndexTest\IndexTest.csproj", "{F3D533D3-37BC-45D7-AB69-6A83D8C995C0}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{182115A4-167A-4621-80F9-B1B69CB05730}"
-	ProjectSection(SolutionItems) = preProject
-		Performance1.psess = Performance1.psess
-	EndProjectSection
-EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ART", "ART\ART.vcxproj", "{F3C3FF64-78A6-4CBC-AC5E-151C909923BD}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -34,16 +29,6 @@ Global
 		{F3D533D3-37BC-45D7-AB69-6A83D8C995C0}.Release|x64.Build.0 = Release|x64
 		{F3D533D3-37BC-45D7-AB69-6A83D8C995C0}.Release|x86.ActiveCfg = Release|Any CPU
 		{F3D533D3-37BC-45D7-AB69-6A83D8C995C0}.Release|x86.Build.0 = Release|Any CPU
-		{F3C3FF64-78A6-4CBC-AC5E-151C909923BD}.Debug|Any CPU.ActiveCfg = Debug|Win32
-		{F3C3FF64-78A6-4CBC-AC5E-151C909923BD}.Debug|x64.ActiveCfg = Debug|x64
-		{F3C3FF64-78A6-4CBC-AC5E-151C909923BD}.Debug|x64.Build.0 = Debug|x64
-		{F3C3FF64-78A6-4CBC-AC5E-151C909923BD}.Debug|x86.ActiveCfg = Debug|Win32
-		{F3C3FF64-78A6-4CBC-AC5E-151C909923BD}.Debug|x86.Build.0 = Debug|Win32
-		{F3C3FF64-78A6-4CBC-AC5E-151C909923BD}.Release|Any CPU.ActiveCfg = Release|Win32
-		{F3C3FF64-78A6-4CBC-AC5E-151C909923BD}.Release|x64.ActiveCfg = Release|x64
-		{F3C3FF64-78A6-4CBC-AC5E-151C909923BD}.Release|x64.Build.0 = Release|x64
-		{F3C3FF64-78A6-4CBC-AC5E-151C909923BD}.Release|x86.ActiveCfg = Release|Win32
-		{F3C3FF64-78A6-4CBC-AC5E-151C909923BD}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -37,52 +37,49 @@ namespace IndexTest
             //Console.WriteLine(DateTime.Now.ToString("hh:mm:ss fff"));
             //Console.ReadLine();
 
+            //Console.WriteLine("BTreeTest:");
+            //BTreeTest();
+
+            Console.WriteLine("ARTTest:");
             ARTTest();
+
+            Console.ReadLine();
+            Console.ReadLine();
         }
 
 
         static void BTreeTest()
         {
-            Console.WriteLine(DateTime.Now.ToString("hh:mm:ss fff"));
-            Index<string> hashTree = new Index<string>(stringCompare, stringGetDefault);
+            BTree<string> hashTree = new BTree<string>(stringCompare, stringGetDefault);
 
+            Console.WriteLine(DateTime.Now.ToString("hh:mm:ss fff"));
+            List<string> tests = new List<string>();
             Random rd = new Random();
             for (int i = 0; i < 10000000; i += 2)
             {
                 string key = GenerateRandomString(64, rd);
                 IntPtr value = new IntPtr(i);
-                hashTree.BTInsert(ref hashTree.root, key, value);
+                hashTree.Insert(ref hashTree.root, key, value);
+
+                if (i % 10000 == 0)
+                    tests.Add(key);
             }
 
-            string key1 = "a3b0e9e7cddbbe78270fa4182a7675ff00b92872d8df7d14265a2b1e379a9d33";
-            IntPtr value1 = new IntPtr(999999999);
-            hashTree.BTInsert(ref hashTree.root, key1, value1);
-
-            for (int i = 0; i < 10000000; i += 2)
+            Console.WriteLine(DateTime.Now.ToString("hh:mm:ss fff"));
+            foreach (string readKey in tests)
             {
-                string key = GenerateRandomString(64, rd);
-                IntPtr value = new IntPtr(i);
-                hashTree.BTInsert(ref hashTree.root, key, value);
+                hashTree.Search(hashTree.root, readKey);
             }
             Console.WriteLine(DateTime.Now.ToString("hh:mm:ss fff"));
-
-            while (true)
-            {
-                string readKey = Console.ReadLine();
-                Console.WriteLine(DateTime.Now.ToString("hh:mm:ss fff"));
-                IntPtr result = new IntPtr(0);
-                hashTree.BTSearch(hashTree.root, readKey, ref result);
-                Console.WriteLine(result);
-                Console.WriteLine(DateTime.Now.ToString("hh:mm:ss fff"));
-            }
         }
 
         static void ARTTest()
         {
-            List<string> tests = new List<string>();
+            //init ART
+            ART artTree = new ART();
 
             Console.WriteLine(DateTime.Now.ToString("hh:mm:ss fff"));
-            ART artTree = new ART();
+            List<string> tests = new List<string>();
             Random rd = new Random();
             for (int i = 0; i < 10000000; i += 2)
             {
@@ -90,17 +87,16 @@ namespace IndexTest
                 IntPtr value = new IntPtr(i);
                 artTree.Insert(artTree.tree, key.ToArray(), value);
 
-                if (i % 100000 == 0)
+                if (i % 10000 == 0)
                     tests.Add(key);
             }
 
             Console.WriteLine(DateTime.Now.ToString("hh:mm:ss fff"));
-            foreach(string readKey in tests)
+            foreach (string readKey in tests)
             {
-                Console.WriteLine(artTree.Search(artTree.tree, readKey.ToArray()));
+                artTree.Search(artTree.tree, readKey.ToArray());
             }
             Console.WriteLine(DateTime.Now.ToString("hh:mm:ss fff"));
-            Console.ReadLine();
         }
 
         static int stringCompare(string val1, string val2)

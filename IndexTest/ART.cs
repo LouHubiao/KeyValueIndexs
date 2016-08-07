@@ -366,7 +366,7 @@ namespace IndexTest
             if (source.prefix_len > 0)
             {
                 if (target.prefix_len < source.prefix_len)
-                    target.prefix = new char[target.prefix_len];
+                    target.prefix = new char[source.prefix_len];
                 target.prefix_len = source.prefix_len;
                 Array.Copy(source.prefix, target.prefix, source.prefix_len);
             }
