@@ -40,17 +40,44 @@ namespace IndexTest
             //Console.WriteLine("BTreeTest:");
             //BTreeTest();
 
-            Console.WriteLine("ARTTest:");
-            ARTTest();
+            //Console.WriteLine("ARTTest:");
+            //ARTTest();
+
+            Console.WriteLine("BTreeTest:");
+            BTreeGenericsTest();
 
             Console.ReadLine();
             Console.ReadLine();
         }
 
+        static void BTreeGenericsTest()
+        {
+            B_Tree<string, IntPtr> hashTree = new B_Tree<string, IntPtr>(stringCompare, stringGetDefaultKey, intPtrGetDefaultValue);
+
+            Console.WriteLine(DateTime.Now.ToString("hh:mm:ss fff"));
+            List<string> tests = new List<string>();
+            Random rd = new Random();
+            for (int i = 0; i < 10000000; i += 2)
+            {
+                string key = GenerateRandomString(64, rd);
+                IntPtr value = new IntPtr(i);
+                hashTree.Insert(ref hashTree.root, key, value);
+
+                if (i % 10000 == 0)
+                    tests.Add(key);
+            }
+
+            Console.WriteLine(DateTime.Now.ToString("hh:mm:ss fff"));
+            foreach (string readKey in tests)
+            {
+                hashTree.Search(hashTree.root, readKey);
+            }
+            Console.WriteLine(DateTime.Now.ToString("hh:mm:ss fff"));
+        }
 
         static void BTreeTest()
         {
-            BTree<string> hashTree = new BTree<string>(stringCompare, stringGetDefault);
+            BTree<string> hashTree = new BTree<string>(stringCompare, stringGetDefaultKey);
 
             Console.WriteLine(DateTime.Now.ToString("hh:mm:ss fff"));
             List<string> tests = new List<string>();
@@ -103,9 +130,14 @@ namespace IndexTest
         {
             return string.CompareOrdinal(val1, val2);
         }
-        static string stringGetDefault()
+        static string stringGetDefaultKey()
         {
             return "";
+        }
+
+        static IntPtr intPtrGetDefaultValue()
+        {
+            return IntPtr.Zero;
         }
 
         private static char[] constant = { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z' };

@@ -66,6 +66,7 @@
   <ItemGroup>
     <Compile Include="ART.cs" />
     <Compile Include="BTree.cs" />
+    <Compile Include="BTreeGenerics.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Trie.cs" />
