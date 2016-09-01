@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using ARTStrSpace;
+using ARTInt64Space;
 
 namespace IndexTest
 {
@@ -43,8 +45,11 @@ namespace IndexTest
             //Console.WriteLine("ARTTest:");
             //ARTTest();
 
-            Console.WriteLine("BTreeTest:");
-            BTreeGenericsTest();
+            //Console.WriteLine("BTreeTest:");
+            //BTreeGenericsTest();
+
+            Console.WriteLine("ARTInt64Test:");
+            ARTInt64Test();
 
             Console.ReadLine();
             Console.ReadLine();
@@ -52,25 +57,26 @@ namespace IndexTest
 
         static void BTreeGenericsTest()
         {
-            B_Tree<string, IntPtr> hashTree = new B_Tree<string, IntPtr>(stringCompare, stringGetDefaultKey, intPtrGetDefaultValue);
+            B_Tree<string, IntPtr> hashTree = new B_Tree<string, IntPtr>();
 
             Console.WriteLine(DateTime.Now.ToString("hh:mm:ss fff"));
             List<string> tests = new List<string>();
             Random rd = new Random();
-            for (int i = 0; i < 10000000; i += 2)
+            for (int i = 0; i < 100000000; i += 2)
             {
                 string key = GenerateRandomString(64, rd);
                 IntPtr value = new IntPtr(i);
-                hashTree.Insert(ref hashTree.root, key, value);
+                B_Tree<string, IntPtr>.Insert(ref hashTree.root, key, value, stringCompare);
 
                 if (i % 10000 == 0)
                     tests.Add(key);
             }
 
             Console.WriteLine(DateTime.Now.ToString("hh:mm:ss fff"));
+            IntPtr result;
             foreach (string readKey in tests)
             {
-                hashTree.Search(hashTree.root, readKey);
+                B_Tree<string, IntPtr>.Search(hashTree.root, readKey, stringCompare, out result);
             }
             Console.WriteLine(DateTime.Now.ToString("hh:mm:ss fff"));
         }
@@ -103,12 +109,12 @@ namespace IndexTest
         static void ARTTest()
         {
             //init ART
-            ART artTree = new ART();
+            ARTStr artTree = new ARTStr();
 
             Console.WriteLine(DateTime.Now.ToString("hh:mm:ss fff"));
             List<string> tests = new List<string>();
             Random rd = new Random();
-            for (int i = 0; i < 10000000; i += 2)
+            for (int i = 0; i < 100000000; i += 2)
             {
                 string key = GenerateRandomString(64, rd);
                 IntPtr value = new IntPtr(i);
@@ -122,6 +128,33 @@ namespace IndexTest
             foreach (string readKey in tests)
             {
                 artTree.Search(artTree.tree, readKey.ToArray());
+            }
+            Console.WriteLine(DateTime.Now.ToString("hh:mm:ss fff"));
+        }
+
+        static void ARTInt64Test()
+        {
+            //init ART
+            ARTInt64 artTree = new ARTInt64();
+
+            Console.WriteLine(DateTime.Now.ToString("hh:mm:ss fff"));
+            List<Int64> tests = new List<Int64>();
+            Random rd = new Random();
+            for (int i = 0; i < 100000000; i += 2)
+            {
+                Int64 key = rd.Next(1000000,Int32.MaxValue);
+                IntPtr value = new IntPtr(i);
+                artTree.Insert(artTree.tree, key, value);
+
+                if (i % 10000 == 0)
+                    tests.Add(key);
+            }
+
+            Console.WriteLine(DateTime.Now.ToString("hh:mm:ss fff"));
+            foreach (Int64 readKey in tests)
+            {
+                IntPtr result = artTree.Search(artTree.tree, readKey);
+                Console.WriteLine(result.ToInt32());
             }
             Console.WriteLine(DateTime.Now.ToString("hh:mm:ss fff"));
         }

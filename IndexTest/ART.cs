@@ -6,9 +6,9 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace IndexTest
+namespace ARTStrSpace
 {
-    class ArtNode
+    class ARTStrNode
     {
         public byte type;
         public byte num_children;
@@ -17,29 +17,29 @@ namespace IndexTest
         public object[] children;
     }
 
-    class ArtNode4 : ArtNode
+    class ARTStrNode4 : ARTStrNode
     {
         public char[] keys;
     }
 
-    class ArtNode16 : ArtNode
+    class ARTStrNode16 : ARTStrNode
     {
         public char[] keys;
     }
 
-    class ArtNode48 : ArtNode
+    class ARTStrNode48 : ARTStrNode
     {
         public char[] keys;
     }
 
-    class ArtNode256 : ArtNode
+    class ARTStrNode256 : ARTStrNode
     {
 
     }
 
-    class ArtTree
+    class ARTStrTree
     {
-        public ArtNode root;
+        public ARTStrNode root;
         public int size;
     }
 
@@ -53,7 +53,7 @@ namespace IndexTest
         }
     }
 
-    class ART
+    class ARTStr
     {
         public enum NodeType
         {
@@ -64,19 +64,19 @@ namespace IndexTest
         };
 
 
-        public ArtTree tree;
+        public ARTStrTree tree;
 
-        public ART()
+        public ARTStr()
         {
-            tree = new ArtTree();
+            tree = new ARTStrTree();
             tree.root = AllocNode(NodeType.NODE4);
             tree.size = 0;
         }
 
         //find from inode to last key item, and than search leaf
-        public IntPtr Search(ArtTree t, char[] key)
+        public IntPtr Search(ARTStrTree t, char[] key)
         {
-            ArtNode node = t.root;
+            ARTStrNode node = t.root;
             int offset = 0;  //offset
             int findOffset;
             while (offset != key.Length)
@@ -92,7 +92,7 @@ namespace IndexTest
                 }
 
                 // Recursively search
-                node = FindNextChild(node, key[offset], out findOffset) as ArtNode;
+                node = FindNextChild(node, key[offset], out findOffset) as ARTStrNode;
                 if (findOffset == -1)
                 {
                     return IntPtr.Zero;
@@ -109,13 +109,13 @@ namespace IndexTest
         }
 
         //insert a key-value pair
-        public void Insert(ArtTree t, char[] key, IntPtr value)
+        public void Insert(ARTStrTree t, char[] key, IntPtr value)
         {
             Recursive_Insert(t.root, key, 0, value, null, 0);
         }
 
         //insert value into node Recursive
-        void Recursive_Insert(ArtNode node, char[] key, int offset, IntPtr value, object[] preChildren, int preIndex)
+        void Recursive_Insert(ARTStrNode node, char[] key, int offset, IntPtr value, object[] preChildren, int preIndex)
         {
             //try move prefix first
             if (node.prefix_len > 0)
@@ -129,7 +129,7 @@ namespace IndexTest
                     if (offset < key.Length)
                     {
                         //init node4 with prefix
-                        ArtNode4 artnode4 = AllocNode(NodeType.NODE4) as ArtNode4;
+                        ARTStrNode4 artnode4 = AllocNode(NodeType.NODE4) as ARTStrNode4;
                         artnode4.prefix_len = (byte)(key.Length - offset - 1);
                         artnode4.prefix = new char[artnode4.prefix_len];
                         Array.Copy(key, offset + 1, artnode4.prefix, 0, artnode4.prefix_len);
@@ -149,7 +149,7 @@ namespace IndexTest
                 {
                     //key length is more than same prefix, and prefix is more than same prefix too, so need splite prefix, nodeUpdate replace node, and node as a child, also add a leaf
                     //init nodeUpdate
-                    ArtNode4 nodeUpdate = AllocNode(NodeType.NODE4) as ArtNode4;
+                    ARTStrNode4 nodeUpdate = AllocNode(NodeType.NODE4) as ARTStrNode4;
                     nodeUpdate.prefix_len = (byte)matchLength;
                     nodeUpdate.prefix = new char[nodeUpdate.prefix_len];
                     Array.Copy(node.prefix, nodeUpdate.prefix, nodeUpdate.prefix_len);
@@ -174,7 +174,7 @@ namespace IndexTest
                     else
                     {
                         //add node4 with leaf into nodeUpdate
-                        ArtNode4 artnode4 = AllocNode(NodeType.NODE4) as ArtNode4;
+                        ARTStrNode4 artnode4 = AllocNode(NodeType.NODE4) as ARTStrNode4;
                         artnode4.prefix_len = (byte)(key.Length - offset - 1);
                         artnode4.prefix = new char[artnode4.prefix_len];
                         Array.Copy(key, offset + 1, artnode4.prefix, 0, artnode4.prefix_len);
@@ -195,12 +195,12 @@ namespace IndexTest
             }
 
             int nodeOffset;
-            ArtNode child = FindNextChild(node, key[offset], out nodeOffset) as ArtNode;
+            ARTStrNode child = FindNextChild(node, key[offset], out nodeOffset) as ARTStrNode;
             //if no child, need add new node4 and new leaf
             if (child == null)
             {
                 //add node
-                ArtNode4 newNode = AllocNode(NodeType.NODE4) as ArtNode4;
+                ARTStrNode4 newNode = AllocNode(NodeType.NODE4) as ARTStrNode4;
                 AddChild(node, key[offset], newNode, preChildren, preIndex);
 
                 //add prefix
@@ -218,7 +218,7 @@ namespace IndexTest
         }
 
         //returen the length of matched prefix, with node.prefix and key from offset
-        int PrefixMatch(ArtNode node, char[] key, int offset)
+        int PrefixMatch(ARTStrNode node, char[] key, int offset)
         {
             int minLen = Math.Min(node.prefix_len, key.Length - offset);
             for (int i = 0; i < minLen; i++)
@@ -230,28 +230,28 @@ namespace IndexTest
         }
 
         //add an child index
-        void AddChild(ArtNode node, char keyItem, object child, object[] preChildren, int preIndex)
+        void AddChild(ARTStrNode node, char keyItem, object child, object[] preChildren, int preIndex)
         {
             switch (node.type)
             {
                 case 1:     //node4
-                    AddChild4(node as ArtNode4, keyItem, child, preChildren, preIndex);
+                    AddChild4(node as ARTStrNode4, keyItem, child, preChildren, preIndex);
                     break;
                 case 2:     //node16
-                    AddChild16(node as ArtNode16, keyItem, child, preChildren, preIndex);
+                    AddChild16(node as ARTStrNode16, keyItem, child, preChildren, preIndex);
                     break;
                 case 3:     //node48, index-1 for 0 is meaningful
-                    AddChild48(node as ArtNode48, keyItem, child, preChildren, preIndex);
+                    AddChild48(node as ARTStrNode48, keyItem, child, preChildren, preIndex);
                     break;
                 case 4:     //ndoe256
-                    AddChild256(node as ArtNode256, keyItem, child, preChildren, preIndex);
+                    AddChild256(node as ARTStrNode256, keyItem, child, preChildren, preIndex);
                     break;
                 default:
                     break;
             }
         }
 
-        void AddChild4(ArtNode4 node, char keyItem, object child, object[] preChildren, int preIndex)
+        void AddChild4(ARTStrNode4 node, char keyItem, object child, object[] preChildren, int preIndex)
         {
             if (node.num_children < 4)
             {
@@ -262,7 +262,7 @@ namespace IndexTest
             else
             {
                 //replace artNode4 by artNode16
-                ArtNode16 artNode16 = AllocNode(NodeType.NODE16) as ArtNode16;
+                ARTStrNode16 artNode16 = AllocNode(NodeType.NODE16) as ARTStrNode16;
                 CopyHeader(node, artNode16);
                 for (int i = 1; i < node.num_children; i++)
                 {
@@ -290,7 +290,7 @@ namespace IndexTest
             }
         }
 
-        void AddChild16(ArtNode16 node, char keyItem, object child, object[] preChildren, int preIndex)
+        void AddChild16(ARTStrNode16 node, char keyItem, object child, object[] preChildren, int preIndex)
         {
             if (node.num_children < 16)
             {
@@ -308,7 +308,7 @@ namespace IndexTest
             else
             {
                 //replace artNode16 by artNode48
-                ArtNode48 artNode48 = AllocNode(NodeType.NODE48) as ArtNode48;
+                ARTStrNode48 artNode48 = AllocNode(NodeType.NODE48) as ARTStrNode48;
                 CopyHeader(node, artNode48);
                 for (int i = 0; i < node.num_children; i++)
                 {
@@ -327,7 +327,7 @@ namespace IndexTest
             }
         }
 
-        void AddChild48(ArtNode48 node, char keyItem, object child, object[] preChildren, int preIndex)
+        void AddChild48(ARTStrNode48 node, char keyItem, object child, object[] preChildren, int preIndex)
         {
             if (node.num_children < 47)
             {
@@ -338,7 +338,7 @@ namespace IndexTest
             else
             {
                 //replace artNode16 by artNode48
-                ArtNode256 artNode256 = AllocNode(NodeType.NODE256) as ArtNode256;
+                ARTStrNode256 artNode256 = AllocNode(NodeType.NODE256) as ARTStrNode256;
                 CopyHeader(node, artNode256);
                 for (int i = 0; i < 256; i++)
                 {
@@ -353,14 +353,14 @@ namespace IndexTest
             }
         }
 
-        void AddChild256(ArtNode256 node, char keyItem, object child, object[] preChildren, int preIndex)
+        void AddChild256(ARTStrNode256 node, char keyItem, object child, object[] preChildren, int preIndex)
         {
             node.children[keyItem] = child;
             node.num_children++;
         }
 
         //copy the header of ArtNode
-        void CopyHeader(ArtNode source, ArtNode target)
+        void CopyHeader(ARTStrNode source, ARTStrNode target)
         {
             target.num_children = source.num_children;
             if (source.prefix_len > 0)
@@ -374,7 +374,7 @@ namespace IndexTest
         }
 
         //add if not exit, update if exit
-        void Add_UpdateLeaf(ArtNode node, IntPtr value)
+        void Add_UpdateLeaf(ARTStrNode node, IntPtr value)
         {
             ArtLeaf oriLeaf = FindLeaf(node);
             if (oriLeaf != null)
@@ -391,14 +391,14 @@ namespace IndexTest
         }
 
         //find leaf of node, the leaf must be the child of node
-        ArtLeaf FindLeaf(ArtNode node)
+        ArtLeaf FindLeaf(ARTStrNode node)
         {
             if (node.num_children > 0)
             {
                 switch (node.type)
                 {
                     case 1:     //node4
-                        ArtNode4 node4 = node as ArtNode4;
+                        ARTStrNode4 node4 = node as ARTStrNode4;
                         for (int i = 0; i < node4.num_children; i++)
                         {
                             if (node4.keys[i] == 1)
@@ -406,17 +406,17 @@ namespace IndexTest
                         }
                         break;
                     case 2:     //node16
-                        ArtNode16 node16 = node as ArtNode16;
+                        ARTStrNode16 node16 = node as ARTStrNode16;
                         if (node16.keys[0] == 1)
                             return node16.children[0] as ArtLeaf;
                         break;
                     case 3:     //node48
-                        ArtNode48 node48 = node as ArtNode48;
+                        ARTStrNode48 node48 = node as ARTStrNode48;
                         if (node48.keys[1] != 0)
                             return node48.children[node48.keys[1]] as ArtLeaf;
                         break;
                     case 4:     //node256
-                        ArtNode256 node256 = node as ArtNode256;
+                        ARTStrNode256 node256 = node as ARTStrNode256;
                         if (node256.children[1] != null)
                             return node256.children[1] as ArtLeaf;
                         break;
@@ -428,12 +428,12 @@ namespace IndexTest
         }
 
         //find the child node, nodeOri must inNode
-        object FindNextChild(ArtNode node, char c, out int nodeOffset)
+        object FindNextChild(ARTStrNode node, char c, out int nodeOffset)
         {
             switch (node.type)
             {
                 case 1:     //node4
-                    ArtNode4 node4 = node as ArtNode4;
+                    ARTStrNode4 node4 = node as ARTStrNode4;
                     for (int i = 0; i < node4.num_children; i++)
                     {
                         if (node4.keys[i] == c)
@@ -444,7 +444,7 @@ namespace IndexTest
                     }
                     break;
                 case 2:     //node16, can use binary search
-                    ArtNode16 node16 = node as ArtNode16;
+                    ARTStrNode16 node16 = node as ARTStrNode16;
                     int index16 = FindBinary(node16.keys, 0, node16.num_children - 1, c);
                     if (index16 != -1)
                     {
@@ -453,7 +453,7 @@ namespace IndexTest
                     }
                     break;
                 case 3:     //node48
-                    ArtNode48 node48 = node as ArtNode48;
+                    ARTStrNode48 node48 = node as ARTStrNode48;
                     int index48 = node48.keys[c];
                     if (index48 != 0)
                     {
@@ -462,7 +462,7 @@ namespace IndexTest
                     }
                     break;
                 case 4:     //ndoe256
-                    ArtNode256 node256 = node as ArtNode256;
+                    ARTStrNode256 node256 = node as ARTStrNode256;
                     if (node256.children[c] != null)
                     {
                         nodeOffset = (int)c;
@@ -494,7 +494,7 @@ namespace IndexTest
         }
 
         //match the longest prefix of the key and node's prefix
-        bool MatchPrefix(ArtNode node, char[] key, int offset)
+        bool MatchPrefix(ARTStrNode node, char[] key, int offset)
         {
             int minLen = Math.Min(node.prefix_len, key.Length);
             for (int i = 0; i < minLen; i++)
@@ -506,31 +506,31 @@ namespace IndexTest
         }
 
         //alloc a node by diffent type
-        ArtNode AllocNode(NodeType type)
+        ARTStrNode AllocNode(NodeType type)
         {
-            ArtNode result;
+            ARTStrNode result;
             switch (type)
             {
                 case NodeType.NODE4:
-                    ArtNode4 artNode4 = new ArtNode4();
+                    ARTStrNode4 artNode4 = new ARTStrNode4();
                     artNode4.keys = new char[4];
                     artNode4.children = new object[4];
                     result = artNode4;
                     break;
                 case NodeType.NODE16:
-                    ArtNode16 artNode16 = new ArtNode16();
+                    ARTStrNode16 artNode16 = new ARTStrNode16();
                     artNode16.keys = new char[16];
                     artNode16.children = new object[16];
                     result = artNode16;
                     break;
                 case NodeType.NODE48:
-                    ArtNode48 artNode48 = new ArtNode48();
+                    ARTStrNode48 artNode48 = new ARTStrNode48();
                     artNode48.keys = new char[256];
                     artNode48.children = new object[48];
                     result = artNode48;
                     break;
                 case NodeType.NODE256:
-                    ArtNode256 artNode256 = new ArtNode256();
+                    ARTStrNode256 artNode256 = new ARTStrNode256();
                     artNode256.children = new object[256];
                     result = artNode256;
                     break;

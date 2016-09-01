@@ -16,6 +16,13 @@ namespace IndexTest
         public List<Node<K, V>> kids = new List<Node<K, V>>();
     }
 
+    class MedianNode<K, V>
+    {
+        public K key;
+        public V value;
+        public Node<K, V> node;
+    }
+
     class B_Tree<K, V>
     {
         const int MAX_KEYS = 1024;
@@ -23,14 +30,9 @@ namespace IndexTest
         //t1>t2, retuen 1; 
         //t1==t2, return 0;
         //t1<t2, return -1;
-        public delegate int CompareT(K t1, K t2);
-        CompareT compare;
-
-        public delegate K GetDefaultKey();
-        GetDefaultKey getDefaultKey;
-
-        public delegate V GetDefaultValue();
-        GetDefaultValue getDefaultVaule;
+        //Delegate<K, V>.CompareT compare;
+        //Delegate<K, V>.GetDefaultKey getDefaultKey;
+        //Delegate<K, V>.GetDefaultValue getDefaultVaule;
 
         public Node<K, V> root;
 
@@ -38,13 +40,10 @@ namespace IndexTest
         /// init BTree
         /// </summary>
         /// <returns>BTree root</returns>
-        public B_Tree(CompareT _compare, GetDefaultKey _getDefaultKey, GetDefaultValue _getDefaultVaule)
+        public B_Tree()
         {
             root = new Node<K, V>();
             root.isLeaf = 1;
-            this.compare = _compare;
-            this.getDefaultKey = _getDefaultKey;
-            this.getDefaultVaule = _getDefaultVaule;
         }
 
         /// <summary>
@@ -53,49 +52,48 @@ namespace IndexTest
         /// <param name="b">root node of subtree</param>
         /// <param name="key">target key</param>
         /// <returns>the value of key</returns>
-        public V Search(Node<K, V> b, K key)
+        public static bool Search(Node<K, V> b, K key, Delegate<K, V>.CompareT compare, out V node)
         {
             int pos;
-            V result;
 
             // have to check for empty tree
             if (b.keys.Count == 0)
             {
-                return getDefaultVaule();
+                node = default(V);
+                return false;
             }
 
             // look for smallest position that key fits below
-            pos = SearchKeyInNode(b.keys, key);
+            pos = SearchKeyInNode_High(b.keys, key, compare);
 
             //return the value of key
             if (pos < b.keys.Count && compare(b.keys[pos], key) == 0)
             {
-                result = b.values[pos];
-                return result;
+                node = b.values[pos];
+                return true;
             }
             else
             {
                 if (b.isLeaf == 0)
                 {
                     //not found and not leaf, find kid
-                    return Search(b.kids[pos], key);
+                    return Search(b.kids[pos], key, compare, out node);
                 }
                 else
                 {
-                    return getDefaultVaule();
+                    node = default(V);
+                    return false;
                 }
             }
         }
 
         //insert one node into BTree
-        public void Insert(ref Node<K, V> b, K key, V value)
+        public static void Insert(ref Node<K, V> b, K key, V value, Delegate<K, V>.CompareT compare)
         {
             Node<K, V> b1;   //new left child
-            Node<K, V> b2;   //new right child
-            K medianKey = getDefaultKey();
-            V medianValue;
+            MedianNode<K, V> b2;   //new right child
 
-            b2 = BTInsertInternal(b, key, value, ref medianKey, out medianValue);
+            b2 = BTInsertInternal(b, key, value, compare);
 
             // split
             if (b2 != null)
@@ -106,20 +104,55 @@ namespace IndexTest
                 // make root point to b1 and b2
                 b = new Node<K, V>();
                 b.isLeaf = 0;
-                b.keys.Add(medianKey);
-                b.values.Add(medianValue);
+                b.keys.Add(b2.key);
+                b.values.Add(b2.value);
                 b.kids.Add(b1);
-                b.kids.Add(b2);
+                b.kids.Add(b2.node);
+            }
+        }
+
+        public static bool Find_High(Node<K, V> b, K key, Delegate<K, V>.CompareT compare, out V node)
+        {
+            int pos;
+
+            // have to check for empty tree
+            if (b.keys.Count == 0)
+            {
+                node = default(V);
+                return false;
+            }
+
+            // look for smallest position that key fits below
+            pos = SearchKeyInNode_High(b.keys, key, compare);
+
+            //return the value of key
+            if (pos < b.keys.Count && compare(b.keys[pos], key) == 0)
+            {
+                node = b.values[pos];
+                return true;
+            }
+            else
+            {
+                if (b.isLeaf == 0)
+                {
+                    //not found and not leaf, find kid
+                    return Search(b.kids[pos], key, compare, out node);
+                }
+                else
+                {
+                    node = default(V);
+                    return false;
+                }
             }
         }
 
         /// <summary>
-        /// search in a node
+        /// search in a node by binary search
         /// </summary>
         /// <param name="keys">node's keys</param>
         /// <param name="key">target key</param>
         /// <returns>pos in this node</returns>
-        int SearchKeyInNode(List<K> keys, K key)
+        static int SearchKeyInNode_High(List<K> keys, K key, Delegate<K, V>.CompareT compare)
         {
             int lo = -1;
             int hi = keys.Count;
@@ -144,6 +177,36 @@ namespace IndexTest
         }
 
         /// <summary>
+        /// search in a node by binary search
+        /// </summary>
+        /// <param name="keys">node's keys</param>
+        /// <param name="key">target key</param>
+        /// <returns>pos in this node</returns>
+        static int SearchKeyInNode_Low(List<K> keys, K key, Delegate<K, V>.CompareT compare)
+        {
+            int lo = -1;
+            int hi = keys.Count;
+            int mid = -1;
+            while (lo + 1 < hi)
+            {
+                mid = (lo + hi) / 2;
+                if (compare(keys[mid], key) == 0)
+                {
+                    return mid;
+                }
+                else if (compare(keys[mid], key) < 0)
+                {
+                    lo = mid;
+                }
+                else
+                {
+                    hi = mid;
+                }
+            }
+            return lo;
+        }
+
+        /// <summary>
         /// insert core function
         /// </summary>
         /// <param name="b">root node of subtree</param>
@@ -152,22 +215,13 @@ namespace IndexTest
         /// <param name="medianKey">splie out the mid key</param>
         /// <param name="medianValue">splie out the mid value</param>
         /// <returns>if inserted return null, if splited return right child</returns>
-        Node<K, V> BTInsertInternal(Node<K, V> b, K key, V value, ref K medianKey, out V medianValue)
+        static MedianNode<K, V> BTInsertInternal(Node<K, V> b, K key, V value, Delegate<K, V>.CompareT compare)
         {
             int pos;    //insert pos
             int mid;    //splite pos
-            K midKey = getDefaultKey();      //splited mid key
-            V midValue;    //splited mid value
-            Node<K, V> b2;
+            MedianNode<K, V> b2;
 
-            pos = SearchKeyInNode(b.keys, key);
-
-            if (pos < b.keys.Count && compare(b.keys[pos], key) == 0)
-            {
-                //find nothing to do
-                medianValue = getDefaultVaule();
-                return null;
-            }
+            pos = SearchKeyInNode_High(b.keys, key, compare);
 
             if (b.isLeaf == 1)
             {
@@ -178,14 +232,14 @@ namespace IndexTest
             else
             {
                 /* insert in child */
-                b2 = BTInsertInternal(b.kids[pos], key, value, ref midKey, out midValue);
+                b2 = BTInsertInternal(b.kids[pos], key, value, compare);
 
                 /* maybe insert a new key in b */
                 if (b2 != null)
                 {
-                    b.keys.Insert(pos, midKey);
-                    b.values.Insert(pos, midValue);
-                    b.kids.Insert(pos + 1, b2);
+                    b.keys.Insert(pos, b2.key);
+                    b.values.Insert(pos, b2.value);
+                    b.kids.Insert(pos + 1, b2.node);
                 }
             }
 
@@ -193,30 +247,26 @@ namespace IndexTest
             {
                 mid = b.keys.Count / 2;
 
-                medianKey = b.keys[mid];
-                medianValue = b.values[mid];
+                b2 = new MedianNode<K, V>();
+                b2.key = b.keys[mid];
+                b2.value = b.values[mid];
+                b2.node = new Node<K, V>();
 
-                b2 = new Node<K, V>();
-
-                b2.isLeaf = b.isLeaf;
-
+                b2.node.isLeaf = b.isLeaf;
                 //shallow copy but safe
                 int movLen = b.keys.Count - mid - 1;
-                b2.keys = b.keys.GetRange(mid + 1, movLen);
-                b2.values = b.values.GetRange(mid + 1, movLen);
+                b2.node.keys = b.keys.GetRange(mid + 1, movLen);
+                b2.node.values = b.values.GetRange(mid + 1, movLen);
                 b.keys.RemoveRange(mid, movLen + 1);
                 b.values.RemoveRange(mid, movLen + 1);
                 if (b.isLeaf == 0)
                 {
-                    //Console.WriteLine(b.kids.Count);
-                    b2.kids = b.kids.GetRange(mid + 1, movLen + 1);
+                    b2.node.kids = b.kids.GetRange(mid + 1, movLen + 1);
                     b.kids.RemoveRange(mid + 1, movLen + 1);
                 }
-
                 return b2;
             }
 
-            medianValue = getDefaultVaule();
             return null;
         }
     }
