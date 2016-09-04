@@ -140,9 +140,32 @@ namespace IndexTest
             Console.WriteLine(DateTime.Now.ToString("hh:mm:ss fff"));
             List<Int64> tests = new List<Int64>();
             Random rd = new Random();
+            //int[] keys = new int[] { 464, 408, 603, 533, 751, 997, 947, 181, 779, 69, 164, 39, 985, 954, 14, 998, 455, 402, 192, 289, 100, 844, 62, 859, 628, 599, 186, 124, 711, 469, 502, 572, 759, 125, 84, 482, 659, 964, 791, 294, 156, 97, 560, 877, 838, 807, 292, 544, 920, 576, 81, 174, 86, 388, 520, 478, 109, 869, 155, 484, 744, 127, 945, 762, 350, 432, 395, 912, 112, 151, 614, 956, 670, 712, 981, 949, 371, 562, 782, 95, 391, 518, 526, 778, 187, 341, 37, 855, 682, 640, 979, 421, 321, 862, 671, 559, 579, 534, 233, 392 };
+            //for (int i = 0; i < 100; i ++)
+            //{
+
+            //    Int64 key = keys[i];
+            //    if (i == 57)
+            //    {
+
+            //    }
+            //    if (i == 91)
+            //    {
+
+            //    }
+            //    IntPtr value = new IntPtr(i);
+            //    artTree.Insert(artTree.tree, key, value);
+
+            //    if (i % 1 == 0)
+            //    {
+            //        tests.Add(key);
+            //        Console.WriteLine(key + "," + i);
+            //    }
+
+            //}
             for (int i = 0; i < 100000000; i += 2)
             {
-                Int64 key = rd.Next(1000000,Int32.MaxValue);
+                Int64 key = rd.Next(0, int.MaxValue);
                 IntPtr value = new IntPtr(i);
                 artTree.Insert(artTree.tree, key, value);
 
@@ -151,10 +174,10 @@ namespace IndexTest
             }
 
             Console.WriteLine(DateTime.Now.ToString("hh:mm:ss fff"));
+            int preResult = 0;
             foreach (Int64 readKey in tests)
             {
-                IntPtr result = artTree.Search(artTree.tree, readKey);
-                Console.WriteLine(result.ToInt32());
+                int result = artTree.Search(artTree.tree, readKey).ToInt32();
             }
             Console.WriteLine(DateTime.Now.ToString("hh:mm:ss fff"));
         }
